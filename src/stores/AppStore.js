@@ -517,6 +517,8 @@ export default types
 
       if (!entity.validate()) return;
 
+
+
       entity.sendUserGenerate();
       handleSubmittingFlag(async () => {
         await getEnv(self).events.invoke(event, self, entity);
@@ -532,6 +534,27 @@ export default types
       entity.beforeSend();
 
       if (!entity.validate()) return;
+
+      async function sendData(data) {
+        const response = await fetch('http://localhost:8000/save_data', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data),
+        });
+
+        const responseData = await response.json();
+
+        if (!response.ok) {
+          throw new Error(`${responseData.detail}`);
+        }
+        return responseData;
+      }
+
+      sendData({ data: entity.serializeAnnotation() })
+        .then(data => console.log(data))
+        .catch(error => console.log(error));
 
       handleSubmittingFlag(async () => {
         await getEnv(self).events.invoke('updateAnnotation', self, entity, extraData);
